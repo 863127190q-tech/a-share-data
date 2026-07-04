@@ -1,0 +1,8 @@
+20260703
+FAIL all_stocks.csv  ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+OK   etf.csv  1528行
+OK   zt_pool.csv  108行
+OK   zb_pool.csv  52行
+OK   dt_pool.csv  19行
+FAIL industry.csv  ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+FAIL concept.csv  ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
