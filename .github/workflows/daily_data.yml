@@ -1,0 +1,42 @@
+name: daily-a-share-data
+
+# 每个交易日北京时间约15:10自动拉取盘后数据并提交到仓库
+# (GitHub cron用UTC:07:10 UTC = 15:10 北京;实际触发可能延迟数分钟,对盘后数据无影响)
+# 节假日会空跑一次,涨停池等接口返回空或报错,记录在_report.txt里,无害。
+
+on:
+  schedule:
+    - cron: "10 7 * * 1-5"
+  workflow_dispatch:      # 手动触发按钮,首次搭建时用它验证
+    inputs:
+      date:
+        description: "可选:指定日期YYYYMMDD,留空=今天"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install akshare pandas -U
+
+      - name: Fetch market data
+        run: python fetch_market_data.py ${{ github.event.inputs.date }}
+
+      - name: Commit & push
+        run: |
+          git config user.name "data-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/
+          git commit -m "data $(date -u +%Y%m%d)" || echo "no changes"
+          git push
