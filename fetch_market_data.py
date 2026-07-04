@@ -33,20 +33,30 @@ import akshare as ak
 import requests
 
 # ---------------------------------------------------------------------------
-# 补丁(2026-07-04):akshare 部分接口写死了 82/17/79.push2.eastmoney.com 等
-# 东财镜像节点,这些节点会直接切断 GitHub Actions 服务器的连接(RemoteDisconnected),
-# 而 88.push2.eastmoney.com 节点经实测畅通(etf.csv 即经由它成功抓取)。
-# 这里在请求层把所有"数字.push2"节点统一改道 88 号节点,API 路径与返回数据完全不变。
-# 不影响 push2his / push2ex / push2delay 等其他域名。
+# 补丁(2026-07-04):akshare 把行情接口写死在 82/17/79/88.push2.eastmoney.com 等
+# 东财编号镜像节点上,这些节点会轮动式地直接切断 GitHub Actions 服务器的连接
+# (RemoteDisconnected)。经在 GitHub 服务器上实测,push2delay.eastmoney.com
+# (延时行情节点)对同一 API 全部畅通。延时节点数据晚15分钟,而本任务在收盘后
+# (北京时间15:10之后)运行,此时延时数据与最终收盘数据完全一致。
+# 策略:每个请求先试原节点;一旦遇到连接被切断,本次运行内全部改走延时节点。
+# 不影响 push2his / push2ex 等其他域名。
 # ---------------------------------------------------------------------------
 _orig_session_request = requests.Session.request
+_delay_mode = False
 
 
 def _rerouted_request(self, method, url, *args, **kwargs):
+    global _delay_mode
     if isinstance(url, str):
-        url = re.sub(
-            r"//\d+\.push2\.eastmoney\.com", "//88.push2.eastmoney.com", url
-        )
+        m = re.match(r"https?://\d+\.push2\.eastmoney\.com(/.*)", url)
+        if m:
+            if not _delay_mode:
+                try:
+                    return _orig_session_request(self, method, url, *args, **kwargs)
+                except requests.exceptions.ConnectionError:
+                    _delay_mode = True
+                    print(f"[补丁] 原节点被拒,改走延时节点: {url.split('/api')[0]}")
+            url = "https://push2delay.eastmoney.com" + m.group(1)
     return _orig_session_request(self, method, url, *args, **kwargs)
 
 
