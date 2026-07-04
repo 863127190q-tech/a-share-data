@@ -27,7 +27,30 @@ import os
 import time
 import datetime as dt
 
+import re
+
 import akshare as ak
+import requests
+
+# ---------------------------------------------------------------------------
+# 补丁(2026-07-04):akshare 部分接口写死了 82/17/79.push2.eastmoney.com 等
+# 东财镜像节点,这些节点会直接切断 GitHub Actions 服务器的连接(RemoteDisconnected),
+# 而 88.push2.eastmoney.com 节点经实测畅通(etf.csv 即经由它成功抓取)。
+# 这里在请求层把所有"数字.push2"节点统一改道 88 号节点,API 路径与返回数据完全不变。
+# 不影响 push2his / push2ex / push2delay 等其他域名。
+# ---------------------------------------------------------------------------
+_orig_session_request = requests.Session.request
+
+
+def _rerouted_request(self, method, url, *args, **kwargs):
+    if isinstance(url, str):
+        url = re.sub(
+            r"//\d+\.push2\.eastmoney\.com", "//88.push2.eastmoney.com", url
+        )
+    return _orig_session_request(self, method, url, *args, **kwargs)
+
+
+requests.Session.request = _rerouted_request
 
 
 def save(df, folder, name):
