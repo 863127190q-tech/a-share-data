@@ -1,3 +1,3 @@
-A-手动剪藏 | 2026-07-09 06:47 | OK 解析1条,去重后新增1条
-B-API采集 | 2026-07-09 06:47 | SKIP 未配置TWEET_API_KEY(在仓库Settings→Secrets→Actions添加后自动启用)
-JOIN-行情对齐 | 2026-07-09 06:47 | OK 推文共1条,生成1份对齐文件
+A-手动剪藏 | 2026-07-09 06:55 | OK 收件箱为空,无新条目
+B-API采集 | 2026-07-09 06:55 | FAIL HTTP429: {"error":"Too Many Requests","message":"For free-tier users, the QPS limit is one request every 5 seconds."}
+JOIN-行情对齐 | 2026-07-09 06:55 | OK 推文共0条,生成0份对齐文件
