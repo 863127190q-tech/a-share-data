@@ -34,10 +34,17 @@ jobs:
       - name: Fetch market data
         run: python fetch_market_data.py ${{ github.event.inputs.date }}
 
+      - name: Join tinghu tweets
+        run: python join_tinghu.py || echo "join失败,不影响行情数据"
+
       - name: Commit & push
         run: |
           git config user.name "data-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add data/
+          git add data/ tinghu/
           git commit -m "data $(date -u +%Y%m%d)" || echo "no changes"
-          git push
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase -X theirs origin main || { git rebase --abort 2>/dev/null || true; sleep 7; }
+          done
+          git push  # 最终确认;仍失败则让工作流亮红灯提醒

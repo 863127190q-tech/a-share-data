@@ -1,0 +1,65 @@
+name: tinghu-tweet-pipeline
+
+# TingHu推文管道:
+#  - 每天北京时间约22:10自动采集(路线B,需配置TWEET_API_KEY;未配置则安静跳过)
+#  - 手机/网页编辑 tinghu/inbox.md 推送后立即归档(路线A)
+#  - 每次都重建行情对齐文件 tinghu/joined/
+# 状态一律写入 tinghu/_status.txt,不静默失败。
+
+on:
+  schedule:
+    - cron: "10 14 * * *"   # 22:10 北京时间,每天(推文不分交易日)
+  workflow_dispatch:
+    inputs:
+      max_pages:
+        description: "可选:本次最多翻几页(每页约20条,首次回填可填10)"
+        required: false
+        default: "3"
+  push:
+    branches: [main]
+    paths:
+      - "tinghu/inbox.md"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tweet-pipeline
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Ingest inbox (路线A)
+        run: python ingest_inbox.py
+
+      - name: Fetch tweets (路线B)
+        env:
+          TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
+          MAX_PAGES: ${{ github.event.inputs.max_pages || '3' }}
+        run: python fetch_tweets.py
+
+      - name: Join with market data
+        run: python join_tinghu.py
+
+      - name: Commit & push
+        run: |
+          git config user.name "tweet-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add tinghu/
+          git commit -m "tinghu $(date -u +%Y%m%d-%H%M)" || echo "no changes"
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase -X theirs origin main || { git rebase --abort 2>/dev/null || true; sleep 7; }
+          done
+          git push  # 最终确认;仍失败则让工作流亮红灯提醒
