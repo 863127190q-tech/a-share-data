@@ -11,8 +11,9 @@
       认证头 X-API-Key;每页最多约20条,newest-first;计费约$0.003/页。
 每次最多翻 MAX_PAGES 页(默认3,上限50);只有当某页出现"有正文候选、零新增、
 且撞到了已归档的推文"时才提前收工——整页都是转推的页不会误触发提前停止。
-回复已由接口默认排除;转推(RT)在本地过滤;若同一推文此前由路线A手动剪藏过,
-则用B的权威时间与全文升级该条(A的估计时间让位)。
+按用户要求采集"所有推文,包括回复"(includeReplies=true);纯转推(RT)仍过滤——
+那是他人的内容,带评论的引用推文有本人文字,不受影响会正常入库。
+若同一推文此前由路线A手动剪藏过,则用B的权威时间与全文升级该条。
 """
 import datetime as dt
 import json
@@ -159,7 +160,7 @@ def main():
     cursor = ""
     try:
         for _page in range(max_pages):
-            params = {"userName": HANDLE}
+            params = {"userName": HANDLE, "includeReplies": "true"}
             if cursor:
                 params["cursor"] = cursor
             r = requests.get(API, params=params, headers={"X-API-Key": key}, timeout=30)
