@@ -158,19 +158,33 @@ def main():
     by_key = {dedup_key(r.get("url")): r for r in rows}
     fetched, added, upgraded, skipped_rt = 0, 0, 0, 0
     cursor = ""
+
+    def save_partial(reason):
+        """中途失败也保住已拉到的数据,并如实记录。"""
+        if added or upgraded:
+            save_tweets(rows)
+            reason += f"(已保存部分:新增{added}条)"
+        update_status("B-API采集", reason)
+
     try:
-        for _page in range(max_pages):
+        for page_no in range(max_pages):
+            if page_no > 0:
+                time.sleep(6)  # 免费档限速:每5秒最多1个请求
             params = {"userName": HANDLE, "includeReplies": "true"}
             if cursor:
                 params["cursor"] = cursor
-            r = requests.get(API, params=params, headers={"X-API-Key": key}, timeout=30)
+            for attempt in range(4):
+                r = requests.get(API, params=params, headers={"X-API-Key": key}, timeout=30)
+                if r.status_code != 429:
+                    break
+                time.sleep(12)  # 撞限速:等一等再试
             if r.status_code != 200:
-                update_status("B-API采集", f"FAIL HTTP{r.status_code}: {safe(r.text)}")
+                save_partial(f"FAIL HTTP{r.status_code}: {safe(r.text)}")
                 print(f"路线B失败 HTTP{r.status_code}")
                 return
             data = r.json()
             if data.get("status") and data.get("status") != "success":
-                update_status("B-API采集", f"FAIL 接口返回: {safe(data.get('msg') or data.get('message'))}")
+                save_partial(f"FAIL 接口返回: {safe(data.get('msg') or data.get('message'))}")
                 return
             tweets = data.get("tweets")
             if tweets is None and isinstance(data.get("data"), dict):
@@ -209,9 +223,8 @@ def main():
             # 只有真撞上已归档推文才提前收工;整页转推不算,继续往下翻
             if page_candidates > 0 and page_new == 0 and page_dupes > 0:
                 break
-            time.sleep(1)
     except Exception as e:  # 网络异常等:如实记录(脱敏后),不中断整体
-        update_status("B-API采集", f"FAIL {type(e).__name__}: {safe(e)}")
+        save_partial(f"FAIL {type(e).__name__}: {safe(e)}")
         print(f"路线B失败: {type(e).__name__}")
         return
 
