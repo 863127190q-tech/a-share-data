@@ -1,0 +1,60 @@
+name: tinghu-tweet-hist
+
+# 历史回捞(手动触发):按北京时间窗抓取历史推文并合并入档
+# 每段完成一个commit;费用与到达边界记录在 tinghu/_status.txt
+
+on:
+  workflow_dispatch:
+    inputs:
+      since_bj:
+        description: "起(北京时间,如 2026-05-11 00:00)"
+        required: true
+      until_bj:
+        description: "止(北京时间,如 2026-06-11 16:00)"
+        required: true
+      label:
+        description: "段标签(如 2026-05-11~06-10)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tweet-pipeline
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Fetch history segment
+        env:
+          TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
+          SINCE_BJ: ${{ github.event.inputs.since_bj }}
+          UNTIL_BJ: ${{ github.event.inputs.until_bj }}
+          SEG_LABEL: ${{ github.event.inputs.label }}
+        run: python fetch_tweets_hist.py
+
+      - name: Join with market data
+        run: python join_tinghu.py
+
+      - name: Commit & push
+        run: |
+          git config user.name "tweet-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add tinghu/
+          git commit -m "tinghu-hist ${{ github.event.inputs.label }}" || echo "no changes"
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase -X theirs origin main || { git rebase --abort 2>/dev/null || true; sleep 7; }
+          done
+          git push  # 最终确认;仍失败则亮红灯提醒

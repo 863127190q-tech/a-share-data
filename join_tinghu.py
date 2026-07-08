@@ -20,6 +20,7 @@ CST = dt.timezone(dt.timedelta(hours=8))
 AI_CODES = [
     "300308", "300502", "688256", "002384", "301308", "603986", "002371",
     "688008", "001309", "603256", "688525", "300223", "600667",
+    "000021", "688361", "688409",
 ]
 
 
@@ -86,6 +87,12 @@ def l1_section(date):
         amt = sum(fnum(r.get("成交额")) or 0 for r in rows)
         lines.append(f"- 全A {len(rows)} 只:上涨 **{up}** / 下跌 **{down}** / 平盘 {flat}")
         lines.append(f"- 两市成交额:**{fmt_amount(amt)}**")
+    elif (folder / "hist_universe.csv").exists():
+        rows = read_csv(folder / "hist_universe.csv")
+        pcts = [fnum(r.get("涨跌幅")) for r in rows]
+        up = sum(1 for x in pcts if x is not None and x > 0)
+        down = sum(1 for x in pcts if x is not None and x < 0)
+        lines.append(f"- ⚠️ 历史回填日,无全A快照;结算宇宙 {len(rows)} 只中:上涨 {up} / 下跌 {down}")
     else:
         missing.append("all_stocks")
 
@@ -123,8 +130,12 @@ def l1_section(date):
 
 def ai_section(date):
     p = Path(f"data/{date}/all_stocks.csv")
+    price_col = "最新价"
     if not p.exists():
-        return ["(all_stocks.csv 缺失,无法生成)"]
+        p = Path(f"data/{date}/hist_universe.csv")  # 历史回填日回退
+        price_col = "收盘"
+    if not p.exists():
+        return ["(all_stocks.csv 与 hist_universe.csv 均缺失,无法生成)"]
     by_code = {r.get("代码", "").zfill(6): r for r in read_csv(p)}
     perf = []
     for code in AI_CODES:
@@ -133,7 +144,7 @@ def ai_section(date):
             perf.append((None, code, "—", "无数据/停牌", "—"))
             continue
         pct = fnum(r.get("涨跌幅"))
-        perf.append((pct, code, r.get("名称", ""), f"{pct:+.2f}%" if pct is not None else "—", r.get("最新价", "—")))
+        perf.append((pct, code, r.get("名称", ""), f"{pct:+.2f}%" if pct is not None else "—", r.get(price_col, "—")))
     perf.sort(key=lambda x: (x[0] is None, -(x[0] or 0)))
     out = ["| 代码 | 名称 | 涨跌幅 | 收盘价 |", "|---|---|---|---|"]
     for _pct, code, name, pct_s, price in perf:
