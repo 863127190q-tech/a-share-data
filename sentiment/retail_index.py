@@ -37,8 +37,12 @@ def main():
     breadth = series("data-宇宙", "赚钱效应_涨跌比")     # 赚钱效应(全区间)
     zt = series("data-池", "涨停家数")                   # 涨停强度(仅06-18+)
     margin = series("sse", "融资余额")                   # 两融余额(全区间)
+    retail_net = series("agg", "散户资金净流向")          # 关注股小单净额聚合(backfill_retail_hist补齐)
+    hot_rank = series("agg", "人气排名均值")             # 关注股人气排名均值(越低越热)
 
-    dates = sorted(breadth.index.union(margin.index).union(zt.index))
+    # 骨架=交易日(赚钱效应/两融/涨停所在日);人气、散户资金流仅reindex对齐,
+    # 不把它们(可能含周末)的日期并入,避免非交易日污染序列。
+    dates = sorted(set().union(breadth.index, margin.index, zt.index))
     df = pd.DataFrame(index=dates)
     df.index.name = "date"
 
@@ -46,15 +50,18 @@ def main():
     df["赚钱效应"] = breadth
     df["涨停强度"] = zt
     df["两融变化"] = margin.reindex(dates).astype(float).pct_change() * 100  # 日环比%
-    # 海外被墙 / 仅快照无历史 → 历史区间置NaN,如实标注(不伪填)
-    df["散户资金净流向"] = pd.NA   # individual_fund_flow 海外push2his被墙
-    df["人气热度"] = pd.NA         # hot_rank/雪球 仅当天快照,无历史;日常滚动起逐步有值
+    # 散户资金净流向、人气热度:由 backfill_retail_hist.py 补齐(海外墙轮动/需国内出口);
+    # 未补齐处为NaN,如实缺位,composite 按当日可用分量求均值,不用0/均值伪填。
+    df["散户资金净流向"] = retail_net.reindex(dates)
+    df["人气热度"] = (-hot_rank).reindex(dates)          # 取负:排名越低(越热)→ 人气热度越高
 
     # 归一化(z-score)后等权合成,每日按"当日可用分量"求均值
     comp_parts = pd.DataFrame({
         "z_赚钱效应": zscore(df["赚钱效应"]),
         "z_涨停强度": zscore(df["涨停强度"]),
         "z_两融变化": zscore(df["两融变化"]),
+        "z_散户资金净流向": zscore(df["散户资金净流向"]),
+        "z_人气热度": zscore(df["人气热度"]),
     })
     df["composite"] = comp_parts.mean(axis=1, skipna=True)          # 等权(待迭代)
     df["n_分量"] = comp_parts.notna().sum(axis=1)
