@@ -20,5 +20,13 @@
 - 涨停/炸板/跌停池:仅 2026-06-18 起有真数据(源端30交易日滚动墙,更早不可回补,按规则跳过)
 - 2026-02-27~05-10 区间行情:尚未回填(收尾项,冻结中)
 
+【收尾待办·回填ProxyError根因(已定位,勿在推文段完成前执行)】
+  fetch_market_data.py 的 push2→push2delay 补丁只覆盖实时快照接口;
+  backfill_market.py 用的 ak.stock_zh_a_hist / fund_etf_hist_em 走 push2his 域名,
+  在GitHub海外节点被东财地域风控 RemoteDisconnected→ProxyError。
+  收尾修法:把域名改道补丁扩展到历史接口链路(monkeypatch akshare 的 requests 会话,
+  push2his→push2delay 或其他未被墙域名);无对应延时域名的接口改用新浪源(stock_zh_a_daily)。
+  回填只跑一遍,失败项按既定规则直接跳过、不重试。
+
 【源端深度观察】 推文源(advanced_search)截至02-27仍正常吐全段数据,未见任何深度墙迹象。
 【挂起项(冻结)】 ETF溢价序列(候选代码 中韩半导体=513310 / 港美互联网=160644,待确认)
