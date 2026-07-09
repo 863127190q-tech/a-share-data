@@ -1,0 +1,78 @@
+{
+  "_说明": "哨兵名单 v0.1(冷启动自 tinghu/tweets.jsonl 语料,2026-07-09;待用户确认后启用)。类型: kol=风向标 / crossover=破圈信号源 / contrarian=反向指标。字段 status: proposed=待确认, active=已确认启用, retired=停用。粉丝量级冷启动时未知处标'待查'。名单质量决定一切:研究对象的名单是十年浸泡出来的,这份是冷启动,注定粗糙,靠迭代收窄差距。",
+  "sentinels": [
+    {
+      "handle": "yiqifacai",
+      "display": "易老板",
+      "type": "contrarian",
+      "followers": "待查(大户,全网围观其杠杆仓)",
+      "reason": "语料点名46次。研究对象把他的杠杆仓位当计时器用:『易老板什么时候道心破碎开始止损+市场插针恐慌,又会出现一个比较好的(买点)』(2026-01-30/02-01)。其爆仓/认栽=底部信号,其高杠杆浮盈=顶部信号。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    },
+    {
+      "handle": "aleabitoreddit",
+      "display": "Serenity(白毛股神)",
+      "type": "kol",
+      "followers": "待查(爆火AI股KOL)",
+      "reason": "语料点名11次(Serenity 8+白毛股神3)。研究对象明确将其热度当情绪读数:『为什么最近才有很多人推荐?这是不是也代表着一种情绪?记录观察一下』(2026-05-25);6-17/7-03两次以其评论区风向做温度计。其被推荐密度/评论区负面比例=AI股情绪代理。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    },
+    {
+      "handle": "Web3Feng",
+      "display": "峰哥(Web3Feng)",
+      "type": "kol",
+      "followers": "待查",
+      "reason": "语料@20次,日常互动密切的币圈KOL。注意:2026-05-29『留几手和峰哥FOMO AI』中的峰哥可能是他、也可能指峰哥亡命天涯(破圈网红),需确认——若是后者请改列crossover并补handle。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    },
+    {
+      "handle": "diamondhandjs",
+      "display": "diamondhandjs",
+      "type": "kol",
+      "followers": "待查",
+      "reason": "语料@17次,高频互动币圈交易者;研究对象曾对其『你要发财了!』——其晒单/情绪状态是圈内温度参考。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    },
+    {
+      "handle": "ququjl",
+      "display": "ququjl",
+      "type": "kol",
+      "followers": "待查",
+      "reason": "语料@19次,风险/仓位话题的高频讨论对象(不对称赌博、站队等严肃话题)。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    },
+    {
+      "handle": "fly2_1M",
+      "display": "fly2_1M",
+      "type": "kol",
+      "followers": "待查",
+      "reason": "语料@7次,A股/美股光模块与AI硬件讨论对手方(6-25存储FOMO期有争论)。股票向情绪参考。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    },
+    {
+      "handle": "suaover",
+      "display": "suaover",
+      "type": "kol",
+      "followers": "待查",
+      "reason": "语料@12次,宏观/迁移类严肃话题互动。低优先,可删。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    },
+    {
+      "handle": "留几手(handle待补)",
+      "display": "留几手",
+      "type": "crossover",
+      "followers": "待查(大众网红)",
+      "reason": "破圈信号本尊:研究对象2026-05-29专门记录『留几手和峰哥FOMO AI』——平时不聊股票的大众账号聊AI股=破圈警报。X handle 需人工补(未在语料@中出现)。",
+      "joined": "2026-07-09",
+      "status": "proposed"
+    }
+  ],
+  "_缺口": "crossover 类目前只有留几手一个种子且缺handle——破圈账号天然不会被研究对象@,冷启动抓不到,需要人工补充2-3个『平时不聊投资的大众/娱乐向中文账号』;contrarian 类只有易老板,如你知道『看多即顶』的历史惯犯请补。"
+}

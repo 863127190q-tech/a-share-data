@@ -1,0 +1,72 @@
+name: sentiment-speech-v31
+
+# v3.1 言论池+哨兵时间线 每日采集(兜底;判读在Claude会话/API侧完成)
+# 部署说明:此文件需复制到 .github/workflows/ 才会被调度——该动作在 sentiment/ 之外,
+#          按隔离原则须用户明确批准。错峰:00:10北京(16:10 UTC),与现有三条工作流无重叠。
+# 全程 continue-on-error:任何失败只写 sentiment/_status.txt,绝不阻塞行情/推文管道。
+
+on:
+  schedule:
+    - cron: "10 16 * * *"   # 北京 00:10,抓取刚结束的完整自然日
+  workflow_dispatch:
+    inputs:
+      backfill_start:
+        description: "可选:言论池回填起(YYYY-MM-DD)"
+        required: false
+        default: ""
+      backfill_end:
+        description: "可选:言论池回填止(YYYY-MM-DD)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sentiment-pipeline
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests pandas akshare
+
+      - name: Speech pool fetch(言论池,昨天或回填区间)
+        continue-on-error: true
+        env:
+          TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
+          BACKFILL_START: ${{ github.event.inputs.backfill_start }}
+          BACKFILL_END: ${{ github.event.inputs.backfill_end }}
+        run: python sentiment/speech/speech_fetch.py
+
+      - name: Sentinel timelines fetch(哨兵时间线,近2天增量)
+        continue-on-error: true
+        env:
+          TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
+          MAX_PAGES_PER_SENTINEL: "2"
+        run: python sentiment/sentinel/sentinel_watch.py --fetch
+
+      - name: Structured proxies(v2民调层顺跑,海外不可达源自动跳过)
+        continue-on-error: true
+        run: python sentiment/fetch_retail_sentiment.py
+
+      - name: Commit & push
+        continue-on-error: true
+        run: |
+          git config user.name "sentiment-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add sentiment/
+          git commit -m "sentiment $(date -u +%Y%m%d)" || echo "no changes"
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase -X theirs origin main || { git rebase --abort 2>/dev/null || true; sleep 7; }
+          done
+          git push || echo "push失败,下次滚动重试(continue-on-error)"

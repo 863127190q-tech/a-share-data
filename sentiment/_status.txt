@@ -1,4 +1,5 @@
 account_open | 2026-07-09 19:43 | OK 101期月度开户数 → account_open.csv
+crowded_whales | 2026-07-09 21:48 | OK 16/16股人气历史;拥挤标记81个;两融分位:接口海外墙,留空待国内补
 market_daily | 2026-07-09 19:43 | OK 源:赚钱效应/涨跌停(data派生23日)、legu活跃度、两融(23日)
 run | 2026-07-09 19:43 | DONE
 watch_sentiment | 2026-07-09 19:43 | OK 源:雪球关注(清单命中16)
