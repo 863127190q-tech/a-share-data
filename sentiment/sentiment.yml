@@ -1,0 +1,75 @@
+name: retail-sentiment
+
+# 散户情绪管道(兜底) —— 情绪框架 v2
+# 隔离:只写 sentiment/,只读 data/tinghu,绝不改动任何现有行情/推文文件与工作流。
+#
+# 重要:主抓取建议【本地(国内出口)】跑,产物 push 到仓库;本工作流是【CI兜底】。
+# GitHub Actions 跑在海外节点,东财/同花顺散户接口多被地域风控,大概率大量源
+# 标"海外不可达,待本地补"——这是预期行为,不阻塞、不伪造。continue-on-error 全程开启,
+# 各源结果写 sentiment/_status.txt。市场级赚钱效应(从 data/ 派生)与两融不依赖被墙接口,
+# 通常仍可产出。
+#
+# 调度错开现有时段:daily_data(07:10/08:45 UTC)、tweet_pipeline(14:10 UTC),
+# 本工作流取 09:30 UTC(北京17:30,盘后)。
+
+on:
+  schedule:
+    - cron: "30 9 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      backfill_start:
+        description: "可选:市场级回填起 YYYYMMDD"
+        required: false
+        default: ""
+      backfill_end:
+        description: "可选:市场级回填止 YYYYMMDD"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: retail-sentiment
+  cancel-in-progress: false
+
+jobs:
+  sentiment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install akshare pandas -U
+
+      - name: Fetch retail sentiment (海外不可达源自动跳过并记录)
+        continue-on-error: true
+        env:
+          BACKFILL_START: ${{ github.event.inputs.backfill_start }}
+          BACKFILL_END: ${{ github.event.inputs.backfill_end }}
+        run: python sentiment/fetch_retail_sentiment.py
+
+      - name: Build composite index
+        continue-on-error: true
+        run: python sentiment/retail_index.py
+
+      - name: Calibrate with TingHu
+        continue-on-error: true
+        run: python sentiment/calibrate_with_tinghu.py
+
+      - name: Commit & push (仅 sentiment/)
+        continue-on-error: true
+        run: |
+          git config user.name "sentiment-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add sentiment/
+          git commit -m "sentiment $(date -u +%Y%m%d-%H%M)" || echo "no changes"
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase -X theirs origin main || { git rebase --abort 2>/dev/null || true; sleep 7; }
+          done
+          git push
