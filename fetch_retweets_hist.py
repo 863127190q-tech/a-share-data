@@ -145,7 +145,10 @@ def main():
                     note += f";中断HTTP{r.status_code}"
                     break
                 data = r.json()
-                tweets = data.get("tweets") or []
+                tweets = data.get("tweets")
+                if tweets is None and isinstance(data.get("data"), dict):
+                    tweets = data["data"].get("tweets")  # last_tweets 的列表嵌在 data 下
+                tweets = tweets or []
                 pages += 1
                 fetched.extend(tweets)
                 oldest = None
