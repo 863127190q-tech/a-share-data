@@ -121,17 +121,57 @@ def main():
 
     fetched, pages = [], 0
     note = ""
+    mode = os.environ.get("MODE", "search")
     try:
-        # 首选:服务端只给纯转推
-        fetched, pages = search(key, f"from:{HANDLE} include:nativeretweets filter:nativeretweets {win}")
-        if not fetched:
-            # 退化:include全量,本地筛转推(费用略高,如实记录)
-            note = ";filter:语法无结果,退化为include+本地筛"
-            fetched, pages = search(key, f"from:{HANDLE} include:nativeretweets {win}")
+        if mode == "timeline":
+            # 时间线通道:搜索索引只留约7天内的纯转推(实测墙),更早的转推须翻时间线
+            # (last_tweets含转推、不受7天限制;整窗全量翻页,费用≈全量条数计费)
+            import requests
+            note = ";timeline模式"
+            cursor = ""
+            while pages < 200:
+                if pages:
+                    time.sleep(6)
+                params = {"userName": HANDLE, "includeReplies": "true"}
+                if cursor:
+                    params["cursor"] = cursor
+                for _a in range(4):
+                    r = requests.get("https://api.twitterapi.io/twitter/user/last_tweets",
+                                     params=params, headers={"X-API-Key": key}, timeout=30)
+                    if r.status_code != 429:
+                        break
+                    time.sleep(12)
+                if r.status_code != 200:
+                    note += f";中断HTTP{r.status_code}"
+                    break
+                data = r.json()
+                tweets = data.get("tweets") or []
+                pages += 1
+                fetched.extend(tweets)
+                oldest = None
+                for t in tweets:
+                    c = parse_created(t.get("createdAt"))
+                    if c and (oldest is None or c < oldest):
+                        oldest = c
+                cursor = data.get("next_cursor") or ""
+                if oldest and oldest < since:
+                    break
+                if not data.get("has_next_page") or not cursor or not tweets:
+                    break
+            print(f"时间线翻至 {oldest} 共{pages}页", flush=True)
+        else:
+            # 搜索通道:仅近7天纯转推可得(源端索引墙)
+            fetched, pages = search(key, f"from:{HANDLE} include:nativeretweets filter:nativeretweets {win}")
+            if not fetched:
+                note = ";filter:语法无结果,退化为include+本地筛"
+                fetched, pages = search(key, f"from:{HANDLE} include:nativeretweets {win}")
     except Exception as e:
         update_status("B-rt纯转推", f"FAIL {type(e).__name__}: {str(e)[:100].replace(key, '[脱敏]')}")
         print(f"FAIL {type(e).__name__}")
         return
+    # 窗口过滤(时间线模式抓的是全量流,截取窗口内)
+    fetched = [t for t in fetched
+               if (lambda c: c and since <= c < until)(parse_created(t.get("createdAt")))]
 
     rts = {}
     if RTS.exists():

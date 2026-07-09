@@ -13,6 +13,10 @@ on:
         description: "止(北京时间,如 2026-07-10 00:00)"
         required: true
         default: "2026-07-10 00:00"
+      mode:
+        description: "search=搜索通道(仅近7天RT可得) / timeline=时间线通道(全窗,费用≈全量计费)"
+        required: false
+        default: "search"
 
 permissions:
   contents: write
@@ -39,6 +43,7 @@ jobs:
           TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
           SINCE_BJ: ${{ github.event.inputs.since_bj }}
           UNTIL_BJ: ${{ github.event.inputs.until_bj }}
+          MODE: ${{ github.event.inputs.mode }}
         run: python fetch_retweets_hist.py
 
       - name: Commit & push
