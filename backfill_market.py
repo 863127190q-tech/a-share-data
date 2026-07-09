@@ -140,7 +140,7 @@ def build_universe():
         if c not in uni:
             uni[c] = (r.get("名称") or "").strip()
 
-    print(f"[宇宙] 共{len(uni)}只(推文提及新增{mentioned},AI名单{len(AI_CODES)},市值前{TOP_N})")
+    print(f"[宇宙] 共{len(uni)}只(推文提及新增{mentioned},AI名单{len(AI_CODES)},市值前{TOP_N})", flush=True)
     return uni
 
 
@@ -173,31 +173,9 @@ def main():
     end = sys.argv[2] if len(sys.argv) > 2 else "20260702"
     ck = load_ckpt()
     days = trade_days(start, end)
-    print(f"[日历] {start}~{end} 共{len(days)}个交易日")
+    print(f"[日历] {start}~{end} 共{len(days)}个交易日", flush=True)
 
-    # ---- 1) 情绪面板逐日回填 ----
-    pool_jobs = {"zt_pool.csv": ak.stock_zt_pool_em,
-                 "zb_pool.csv": ak.stock_zt_pool_zbgc_em,
-                 "dt_pool.csv": ak.stock_zt_pool_dtgc_em}
-    for d in days:
-        if d in ck["pools_done"]:
-            continue
-        ok = True
-        for fname, fn in pool_jobs.items():
-            try:
-                df = retry(lambda fn=fn, d=d: fn(date=d))
-                Path(f"data/{d}").mkdir(parents=True, exist_ok=True)
-                df.to_csv(f"data/{d}/{fname}", index=False, encoding="utf-8-sig")
-            except Exception as e:
-                ok = False
-                ck["fails"].append(f"pool {d} {fname} {type(e).__name__}")
-            time.sleep(0.6)
-        if ok:
-            ck["pools_done"].append(d)
-        save_ckpt(ck)
-        print(f"[情绪面板] {d} {'OK' if ok else 'FAIL(已记录)'} ({days.index(d)+1}/{len(days)})")
-
-    # ---- 2) 结算宇宙 + ETF ----
+    # ---- 1) 结算宇宙 + ETF(v3.1优先级最高的数据项) ----
     uni = build_universe()
     etf_names = {}
     try:
@@ -210,7 +188,7 @@ def main():
 
     day_rows = {}
     todo = [t for t in targets if t[0] not in ck["hist_done"]]
-    print(f"[日线] 需拉{len(todo)}只(已完成{len(targets)-len(todo)}只将从缓存补齐)")
+    print(f"[日线] 需拉{len(todo)}只(已完成{len(targets)-len(todo)}只将从缓存补齐)", flush=True)
     # 注意:hist_done 的缓存粒度是"整段",断点续跑时已完成标的的行不在内存里,
     # 因此续跑会重建当日文件缺失的部分——用"追加+去重"落盘保证幂等。
     for i, (code, name, is_etf) in enumerate(todo):
@@ -221,12 +199,52 @@ def main():
             ck["hist_done"].append(code)
         except Exception as e:
             ck["fails"].append(f"hist {code} {type(e).__name__}")
-            print(f"  [日线] {code} {name} FAIL {type(e).__name__}")
+            print(f"  [日线] {code} {name} FAIL {type(e).__name__}", flush=True)
         if i % 20 == 0:
             save_ckpt(ck)
-            print(f"  [日线] 进度 {i+1}/{len(todo)}")
+            print(f"  [日线] 进度 {i+1}/{len(todo)}", flush=True)
         time.sleep(0.5)
     save_ckpt(ck)
+
+    # ---- 2) 情绪面板逐日回填(v3.1优先级:后于宇宙日线) ----
+    pool_jobs = {"zt_pool.csv": ak.stock_zt_pool_em,
+                 "zb_pool.csv": ak.stock_zt_pool_zbgc_em,
+                 "dt_pool.csv": ak.stock_zt_pool_dtgc_em}
+    ck.setdefault("depth_walls", [])
+    # 炸板/跌停池深度墙边界(YYYYMMDD):该日期及更早直接跳过,不硬闯(v3.1)
+    wall_until = max((w.split()[0] for w in ck["depth_walls"]), default="")
+    for d in days:
+        if d in ck["pools_done"]:
+            continue
+        ok = True
+        for fname, fn in pool_jobs.items():
+            if fname in ("zb_pool.csv", "dt_pool.csv") and d <= wall_until:
+                continue
+            try:
+                try:
+                    df = fn(date=d)
+                except ValueError as e:
+                    if "只能获取最近" in str(e):
+                        tag = f"{d} {fname}"
+                        if tag not in ck["depth_walls"]:
+                            ck["depth_walls"].append(tag)
+                        wall_until = max(wall_until, d)
+                        continue
+                    df = retry(lambda fn=fn, d=d: fn(date=d))
+                except Exception:
+                    df = retry(lambda fn=fn, d=d: fn(date=d))
+                Path(f"data/{d}").mkdir(parents=True, exist_ok=True)
+                df.to_csv(f"data/{d}/{fname}", index=False, encoding="utf-8-sig")
+            except Exception as e:
+                ok = False
+                tag = f"pool {d} {fname} {type(e).__name__}"
+                if tag not in ck["fails"]:
+                    ck["fails"].append(tag)
+            time.sleep(0.6)
+        if ok:
+            ck["pools_done"].append(d)
+        save_ckpt(ck)
+        print(f"[情绪面板] {d} {'OK' if ok else 'FAIL(已记录)'} ({days.index(d)+1}/{len(days)})", flush=True)
 
     # ---- 3) 落盘(追加+按代码去重,幂等) ----
     import csv
@@ -245,7 +263,7 @@ def main():
             w.writeheader()
             for _, r in sorted(merged.items()):
                 w.writerow({k: r.get(k, "") for k in cols})
-    print(f"[落盘] hist_universe.csv 写入{len(day_rows)}个交易日")
+    print(f"[落盘] hist_universe.csv 写入{len(day_rows)}个交易日", flush=True)
 
     fails = ck["fails"]
     msg = (f"OK {start}~{end} 交易日{len(days)}个 情绪面板完成{len(ck['pools_done'])}日 "
