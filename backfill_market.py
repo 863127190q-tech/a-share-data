@@ -17,6 +17,7 @@
 """
 import datetime as dt
 import json
+import os
 import re
 import sys
 import time
@@ -148,24 +149,69 @@ def append_day_rows(day_rows, date, rows):
     day_rows.setdefault(date, []).extend(rows)
 
 
-def hist_one(code, name, start, end, is_etf=False):
-    """一只标的整段日线 → [(date, row), ...]"""
-    if is_etf:
-        df = retry(lambda: ak.fund_etf_hist_em(symbol=code, period="daily",
-                                               start_date=start, end_date=end, adjust=""))
-    else:
-        df = retry(lambda: ak.stock_zh_a_hist(symbol=code, period="daily",
-                                              start_date=start, end_date=end, adjust=""))
-    out = []
-    for _, r in df.iterrows():
-        date = str(r["日期"]).replace("-", "")[:8]
-        close, chg = float(r["收盘"]), float(r.get("涨跌额") or 0)
-        out.append((date, {
-            "代码": code, "名称": name,
-            "开盘": r["开盘"], "最高": r["最高"], "最低": r["最低"], "收盘": r["收盘"],
-            "昨收": round(close - chg, 4), "涨跌幅": r["涨跌幅"], "成交额": r["成交额"],
-        }))
+def _sina_sym(code):
+    """6位代码 → 新浪带交易所前缀符号。"""
+    c = str(code).zfill(6)
+    if c.startswith(("920", "8", "43", "87")):  # 北交所
+        return "bj" + c
+    if c.startswith(("5", "6", "9", "11")):  # 上交所(含5/58ETF、9沪B)
+        return "sh" + c
+    return "sz" + c  # 00/30主板创业板、15/16深ETF、12深债等
+
+
+def _rows_from_sina(df, code, name, start, end):
+    """新浪日线(含start前若干日) → 计算昨收/涨跌幅,截取[start,end]。"""
+    recs = sorted(df.to_dict("records"), key=lambda r: str(r.get("date")))
+    out, prev_close = [], None
+    for r in recs:
+        date = str(r.get("date")).replace("-", "")[:8]
+        try:
+            close = float(r["close"])
+        except (TypeError, ValueError, KeyError):
+            continue
+        if start <= date <= end and prev_close:
+            pct = round((close - prev_close) / prev_close * 100, 2)
+            out.append((date, {
+                "代码": code, "名称": name,
+                "开盘": r.get("open", ""), "最高": r.get("high", ""), "最低": r.get("low", ""), "收盘": close,
+                "昨收": round(prev_close, 4), "涨跌幅": pct, "成交额": r.get("amount", ""),
+            }))
+        prev_close = close
     return out
+
+
+def hist_one(code, name, start, end, is_etf=False, use_sina=False):
+    """一只标的整段日线 → [(date, row), ...]。
+    东财历史接口(push2his)对海外节点有地域风控(RemoteDisconnected/ProxyError);
+    use_sina=True 时直接走新浪源(用户认可的替代:stock_zh_a_daily / fund_etf_hist_sina)。
+    否则先试东财,失败或空则回落新浪。"""
+    if not use_sina:
+        try:
+            if is_etf:
+                df = ak.fund_etf_hist_em(symbol=code, period="daily", start_date=start, end_date=end, adjust="")
+            else:
+                df = ak.stock_zh_a_hist(symbol=code, period="daily", start_date=start, end_date=end, adjust="")
+            if len(df):
+                out = []
+                for _, r in df.iterrows():
+                    date = str(r["日期"]).replace("-", "")[:8]
+                    close, chg = float(r["收盘"]), float(r.get("涨跌额") or 0)
+                    out.append((date, {
+                        "代码": code, "名称": name,
+                        "开盘": r["开盘"], "最高": r["最高"], "最低": r["最低"], "收盘": r["收盘"],
+                        "昨收": round(close - chg, 4), "涨跌幅": r["涨跌幅"], "成交额": r["成交额"],
+                    }))
+                return out
+        except Exception:
+            pass  # 落到新浪源
+    # 新浪源:多取15天以拿到区间首日的昨收
+    s_early = (dt.datetime.strptime(start, "%Y%m%d") - dt.timedelta(days=15)).strftime("%Y%m%d")
+    sym = _sina_sym(code)
+    if is_etf:
+        df = retry(lambda: ak.fund_etf_hist_sina(symbol=sym))
+    else:
+        df = retry(lambda: ak.stock_zh_a_daily(symbol=sym, start_date=s_early, end_date=end, adjust=""))
+    return _rows_from_sina(df, code, name, start, end)
 
 
 def main():
@@ -186,6 +232,16 @@ def main():
     targets = [(c, n, False) for c, n in uni.items()] + \
               [(c, etf_names.get(c, c), True) for c in ETF_CODES]
 
+    # 探测东财历史接口(push2his)是否被地域风控;不可用则整轮走新浪源
+    use_sina = False
+    try:
+        t = ak.stock_zh_a_hist(symbol="300308", period="daily", start_date=end, end_date=end, adjust="")
+        if not len(t):
+            use_sina = True
+    except Exception:
+        use_sina = True
+    print(f"[数据源] {'新浪(东财历史接口被地域风控)' if use_sina else '东财'}", flush=True)
+
     day_rows = {}
     todo = [t for t in targets if t[0] not in ck["hist_done"]]
     print(f"[日线] 需拉{len(todo)}只(已完成{len(targets)-len(todo)}只将从缓存补齐)", flush=True)
@@ -193,7 +249,7 @@ def main():
     # 因此续跑会重建当日文件缺失的部分——用"追加+去重"落盘保证幂等。
     for i, (code, name, is_etf) in enumerate(todo):
         try:
-            for date, row in hist_one(code, name, start, end, is_etf):
+            for date, row in hist_one(code, name, start, end, is_etf, use_sina):
                 if start <= date <= end:
                     append_day_rows(day_rows, date, [row])
             ck["hist_done"].append(code)
@@ -213,9 +269,13 @@ def main():
     ck.setdefault("depth_walls", [])
     # 炸板/跌停池深度墙边界(YYYYMMDD):该日期及更早直接跳过,不硬闯(v3.1)
     wall_until = max((w.split()[0] for w in ck["depth_walls"]), default="")
+    # 已知池数据floor(实测涨停/炸板/跌停三池均自此日起才有真数据);更早整体跳过,不尝试
+    pool_floor = os.environ.get("POOL_FLOOR", "")
     for d in days:
         if d in ck["pools_done"]:
             continue
+        if pool_floor and d < pool_floor:
+            continue  # 早于池数据floor,按既定规则直接跳过,不消耗任何API
         ok = True
         for fname, fn in pool_jobs.items():
             if fname in ("zb_pool.csv", "dt_pool.csv") and d <= wall_until:
