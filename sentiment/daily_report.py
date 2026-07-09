@@ -30,16 +30,17 @@ def main():
     # ① 哨兵层(纲)
     L.append("## ① 哨兵")
     ev = SENT / "sentinel" / "sentinel_events.csv"
-    rows = pd.DataFrame()
-    if ev.exists():
+    if not ev.exists():
+        L.append("- 哨兵层未启用(名单已于2026-07-09取消;如实标注,不假装沉默)")
+    else:
         e = pd.read_csv(ev, dtype={"date": str})
         rows = e[e["date"] == day]
-    if len(rows):
-        for _, r in rows.iterrows():
-            L.append(f"- 🚨 **{r['handle']}**({r['type']})**{r['event']}**:{r['from_to']}"
-                     f"(置信{r['confidence']}) [原文]({r['url']})")
-    else:
-        L.append("- 今日哨兵无转向(沉默也是读数——『还未看到批量躺赚推文』式的缺席记录)")
+        if len(rows):
+            for _, r in rows.iterrows():
+                L.append(f"- 🚨 **{r['handle']}**({r['type']})**{r['event']}**:{r['from_to']}"
+                         f"(置信{r['confidence']}) [原文]({r['url']})")
+        else:
+            L.append("- 今日哨兵无转向(沉默也是读数——『还未看到批量躺赚推文』式的缺席记录)")
     L.append("")
 
     # ② 高权重原话样本(证据)
