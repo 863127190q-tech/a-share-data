@@ -1,0 +1,54 @@
+name: tinghu-retweets
+
+# 纯转推回捞(手动触发):独立产物 tinghu/retweets.jsonl,不触碰 tweets.jsonl 及其口径
+
+on:
+  workflow_dispatch:
+    inputs:
+      since_bj:
+        description: "起(北京时间,如 2026-01-25 00:00)"
+        required: true
+        default: "2026-01-25 00:00"
+      until_bj:
+        description: "止(北京时间,如 2026-07-10 00:00)"
+        required: true
+        default: "2026-07-10 00:00"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tweet-pipeline
+  cancel-in-progress: false
+
+jobs:
+  retweets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Fetch retweets
+        env:
+          TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
+          SINCE_BJ: ${{ github.event.inputs.since_bj }}
+          UNTIL_BJ: ${{ github.event.inputs.until_bj }}
+        run: python fetch_retweets_hist.py
+
+      - name: Commit & push
+        run: |
+          git config user.name "tweet-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add tinghu/
+          git commit -m "tinghu-retweets ${{ github.event.inputs.since_bj }}~${{ github.event.inputs.until_bj }}" || echo "no changes"
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase -X theirs origin main || { git rebase --abort 2>/dev/null || true; sleep 7; }
+          done
+          git push  # 最终确认
