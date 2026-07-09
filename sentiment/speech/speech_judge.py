@@ -143,7 +143,9 @@ def do_aggregate():
     slist = json.loads((SENT / "sentinel" / "sentinel_list.json").read_text(encoding="utf-8"))
     sentinels = {s["handle"].lower() for s in slist["sentinels"]}
 
-    hi = df[df["confidence"] >= 0.7]
+    # 民调计数剔除营销喊单(拉客广告≠散户情绪;明细与样本仍保留可查)
+    df["_ad"] = df["signals"].astype(str).str.contains("喊单")
+    hi = df[(df["confidence"] >= 0.7) & (~df["_ad"])]
     days = sorted(df["day"].unique())
     out = []
     hist = {p: {} for p in ("贪婪", "恐惧", "投降", "嘲讽反讽", "中性")}
@@ -190,7 +192,7 @@ def do_aggregate():
                 continue
             L.append(f"## {tsub.iloc[0]['tier_name']}")
             for _, r in tsub.iterrows():
-                sig = f" 🚩{r['signals']}" if r["signals"] else ""
+                sigs = str(r["signals"]);  sig = f" 🚩{sigs}" if sigs not in ("", "nan") else ""
                 L.append(f"- **{r['polarity']}×{r['intensity']}**(置信{r['confidence']:.2f},"
                          f"{r['topic_market']}){sig} @{r['author']} [原文]({r['url']})")
             L.append("")
@@ -208,8 +210,8 @@ def do_api():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["--export", "--ingest", "--aggregate", "--api"],
-                    nargs="?", default="--aggregate")
+    ap.add_argument("mode", choices=['export', 'ingest', 'aggregate', 'api'],
+                    nargs="?", default="aggregate")
     a = ap.parse_args()
-    {"--export": do_export, "--ingest": do_ingest,
-     "--aggregate": do_aggregate, "--api": do_api}[a.mode]()
+    {"export": do_export, "ingest": do_ingest,
+     "aggregate": do_aggregate, "api": do_api}[a.mode]()

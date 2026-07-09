@@ -63,8 +63,10 @@ def main():
             L.append("| 极性 | 高置信条数 | 20日z | 相变 |")
             L.append("|---|---|---|---|")
             for _, r in sub.iterrows():
-                flag = {"群体级": " 🔴" if r["polarity"] == "贪婪" else " 🟢"}.get(str(r["phase"]), "")
-                L.append(f"| {r['polarity']} | {r['high_conf_count']} | {r['zscore_20d']} | {r['phase']}{flag} |")
+                ph = "" if str(r["phase"]) in ("nan","") else str(r["phase"])
+                z = "—" if str(r["zscore_20d"]) in ("nan","") else r["zscore_20d"]
+                flag = {"群体级": " 🔴" if r["polarity"] == "贪婪" else " 🟢"}.get(ph, "")
+                L.append(f"| {r['polarity']} | {r['high_conf_count']} | {z} | {ph}{flag} |")
         else:
             L.append("(当日无判读数据)")
     else:

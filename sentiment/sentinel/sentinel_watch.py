@@ -246,8 +246,8 @@ def do_detect():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["--fetch", "--export", "--ingest", "--detect"],
-                    nargs="?", default="--detect")
+    ap.add_argument("mode", choices=['fetch', 'export', 'ingest', 'detect'],
+                    nargs="?", default="detect")
     a = ap.parse_args()
-    {"--fetch": do_fetch, "--export": do_export,
-     "--ingest": do_ingest, "--detect": do_detect}[a.mode]()
+    {"fetch": do_fetch, "export": do_export,
+     "ingest": do_ingest, "detect": do_detect}[a.mode]()

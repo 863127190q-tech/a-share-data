@@ -1,0 +1,15 @@
+[
+ {"i": 0, "polarity": "中性", "intensity": 1, "confidence": 0.6, "signals": ["喊单"], "topic_market": "A股"},
+ {"i": 1, "polarity": "嘲讽反讽", "intensity": 1, "confidence": 0.6, "signals": [], "topic_market": "A股"},
+ {"i": 2, "polarity": "嘲讽反讽", "intensity": 2, "confidence": 0.8, "signals": [], "topic_market": "美股"},
+ {"i": 3, "polarity": "贪婪", "intensity": 2, "confidence": 0.85, "signals": ["喊单"], "topic_market": "A股"},
+ {"i": 4, "polarity": "恐惧", "intensity": 2, "confidence": 0.7, "signals": [], "topic_market": "混合"},
+ {"i": 5, "polarity": "嘲讽反讽", "intensity": 1, "confidence": 0.5, "signals": [], "topic_market": "A股"},
+ {"i": 6, "polarity": "中性", "intensity": 1, "confidence": 0.6, "signals": ["喊单"], "topic_market": "混合"},
+ {"i": 7, "polarity": "贪婪", "intensity": 2, "confidence": 0.6, "signals": ["新韭菜入场"], "topic_market": "美股"},
+ {"i": 8, "polarity": "贪婪", "intensity": 2, "confidence": 0.65, "signals": ["喊单"], "topic_market": "A股"},
+ {"i": 9, "polarity": "中性", "intensity": 1, "confidence": 0.9, "signals": ["喊单"], "topic_market": "混合"},
+ {"i": 10, "polarity": "贪婪", "intensity": 1, "confidence": 0.6, "signals": ["喊单"], "topic_market": "美股"},
+ {"i": 11, "polarity": "恐惧", "intensity": 2, "confidence": 0.75, "signals": [], "topic_market": "混合"},
+ {"i": 12, "polarity": "中性", "intensity": 1, "confidence": 0.9, "signals": ["喊单"], "topic_market": "美股"}
+]

@@ -1,6 +1,8 @@
-account_open | 2026-07-09 22:00 | OK 101期月度开户数 → account_open.csv
-market_daily | 2026-07-09 21:59 | OK 源:legu活跃度
-run | 2026-07-09 22:00 | DONE
-watch_sentiment | 2026-07-09 22:00 | OK 源:东财人气榜(清单命中12)、雪球关注(清单命中16)
-个股散户资金流 | 2026-07-09 22:00 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
-板块资金流sector_flow | 2026-07-09 21:59 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+account_open | 2026-07-09 22:52 | OK 101期月度开户数 → account_open.csv
+market_daily | 2026-07-09 22:52 | OK 源:赚钱效应/涨跌停(data派生4日)、legu活跃度、两融(4日)
+run | 2026-07-09 22:52 | DONE
+speech_judge | 2026-07-09 22:52 | AGGREGATE 1日聚合+样本完成
+watch_sentiment | 2026-07-09 22:52 | OK 源:雪球关注(清单命中16)
+东财人气榜hot_rank | 2026-07-09 22:52 | FAIL 海外不可达(地域风控?),待本地补:ProxyError
+个股散户资金流 | 2026-07-09 22:52 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+板块资金流sector_flow | 2026-07-09 22:52 | FAIL 海外不可达(地域风控?),待本地补:ProxyError

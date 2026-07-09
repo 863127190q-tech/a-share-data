@@ -1,0 +1,122 @@
+{
+ "prompt": "你是中文财经言论情绪判读员。对下面每条推特言论逐条判读,输出JSON数组,每条:\n{\"i\":序号,\"polarity\":\"贪婪|恐惧|投降|嘲讽反讽|中性\",\"intensity\":1-3,\"confidence\":0-1,\n \"signals\":[\"新韭菜入场\"|\"晒盈利\"|\"晒逃顶\"|\"喊单\"](没有则空数组),\"topic_market\":\"A股|美股|币圈|混合\"}\n判读要点:反讽要按真实立场判(『A股yyds,又绿了』=嘲讽反讽);『我妈都开户了』类=贪婪+新韭菜入场;\n投降=认亏离场/卸载软件/再也不玩;不聊行情的闲聊=中性低置信。只输出JSON数组。",
+ "items": [
+  {
+   "i": 0,
+   "url": "https://x.com/MMoonbit/status/2074879607606800573",
+   "day": "2026-07-08",
+   "author": "MMoonbit",
+   "followers": 7058,
+   "engage": 1,
+   "text": "@0xAA_Science 大A,用这个，稳定性价比高。https://t.co/kkwvX92w4Y"
+  },
+  {
+   "i": 1,
+   "url": "https://x.com/shjdjjj2/status/2074879641668681844",
+   "day": "2026-07-08",
+   "author": "shjdjjj2",
+   "followers": 77,
+   "engage": 0,
+   "text": "@QingSong79 大A涨不动，4000点左右震荡了，国家队去拉升，岂不是给散户解套"
+  },
+  {
+   "i": 2,
+   "url": "https://x.com/Tiffany19131202/status/2074881617827615156",
+   "day": "2026-07-08",
+   "author": "Tiffany19131202",
+   "followers": 35,
+   "engage": 0,
+   "text": "$ORCL软件涨你是数据中心，数据中心涨你是软件，你和大A那些垃圾有什么区别？但凡提前买入$NBIS和$ANET，多看你一眼都是对美股市场的不尊重！埃里森80多的人了，别这把岁数晚节不保 https://t.co/JRTTtqTIfc"
+  },
+  {
+   "i": 3,
+   "url": "https://x.com/angelsnangels_/status/2074882446051733740",
+   "day": "2026-07-08",
+   "author": "angelsnangels_",
+   "followers": 404,
+   "engage": 0,
+   "text": "行情定心丸！科技主线根本没结束，央妈直接指明下半年核心方向\n\n家人们！说句大实话，当下A股的科技主线行情，完全没有结束！\n\n近期整个科技赛道利好消息密集轰炸，板块轮动持续活跃，很多人纠结行情是不是接近尾声、要不要提前离场。但央行最新重磅表态，直接给全市场把下半年的赚钱方向、政策主线彻底说透了，堪称最权威的行情定心丸！\n\n本轮市场资金不会无序泛滥、盲目炒作，而是精准滴灌、定点扶持，核心锁定三大核心领域：科技创新、内需消费、中小微及民营实体经济。\n\n金融端配套政策同步落地，大银行全力做好产业资金支撑，助力优质企业扩产发展；中小银行深耕本地市场，服务实体小微企业。整体融资环境持续宽松，企业经营、创业经营的资金压力持续缓解。\n\n与此同时，调控层面精准维稳，全力守住市场底线，杜绝大幅剧烈波动，为整体资本市场营造稳定、健康的上行环境。\n\n把政策翻译成人话：\n紧跟科技硬赛道、深耕实体、踏实经营的方向，后"
+  },
+  {
+   "i": 4,
+   "url": "https://x.com/jingling6699/status/2074883210245558282",
+   "day": "2026-07-08",
+   "author": "jingling6699",
+   "followers": 76,
+   "engage": 1,
+   "text": "@PandaTouZi 还会有一个反抽再下跌吗？下跌幅度比3月份还要大！大a和spx同理。"
+  },
+  {
+   "i": 5,
+   "url": "https://x.com/xxy54920996/status/2074883311982510186",
+   "day": "2026-07-08",
+   "author": "xxy54920996",
+   "followers": 234,
+   "engage": 5,
+   "text": "@STANLEES4 用上证指数代表A股, 6.7万粉丝是买的吧?"
+  },
+  {
+   "i": 6,
+   "url": "https://x.com/linsizhen/status/2074883874438701095",
+   "day": "2026-07-08",
+   "author": "linsizhen",
+   "followers": 9,
+   "engage": 0,
+   "text": "我开源了自己每天在用的 AI 投研看板 Vibe-Research。\n\n深耕 A 股全栈数据，兼看美股 / 港股 / 韩股。行情、研报、估值、财务、资金面、资讯全配齐，接入你自己的 AI——它不荐股、不预测，方向你自己定。\n\n免 key 接 Claude Code / MCP，也支持 API 多模型。开源免费 👇\nhttps://t.co/mal5q6dtWa"
+  },
+  {
+   "i": 7,
+   "url": "https://x.com/NOT7717/status/2074884131037888960",
+   "day": "2026-07-08",
+   "author": "NOT7717",
+   "followers": 16412,
+   "engage": 2,
+   "text": "@SunnyMQ1 @BITstocks_CN 开户送SpaceX股票？好香啊！🥰"
+  },
+  {
+   "i": 8,
+   "url": "https://x.com/memekiller365/status/2074884371501482005",
+   "day": "2026-07-08",
+   "author": "memekiller365",
+   "followers": 24212,
+   "engage": 64,
+   "text": "本月这两周打死不梭哈，\n等到7月20日。\n\n大A会去4400，但是过程艰难。\n如果出现3800果断抄底。"
+  },
+  {
+   "i": 9,
+   "url": "https://x.com/TuongVee/status/2074884589521084754",
+   "day": "2026-07-08",
+   "author": "TuongVee",
+   "followers": 5,
+   "engage": 5,
+   "text": "美股🍀港股💫孙宇晨 #币圈\nPerp DEX😍现货ETF👍砸盘\n链上浏览器✨返佣开户🥰Berachain生态\n蓝筹NFT🎉推特投放🌈USDT脱锚\nAI交易机器人😋比特币ETF😎\n全网独家带单➕高反80以上社区@binbin666880 https://t.co/BmB9I5nxGo"
+  },
+  {
+   "i": 10,
+   "url": "https://x.com/ForexSignalsATC/status/2074884761705967819",
+   "day": "2026-07-08",
+   "author": "ForexSignalsATC",
+   "followers": 30350,
+   "engage": 2,
+   "text": "@SunnyMQ1 @BITstocks_CN 送 SpaceX 股票这个确实没想到 开户就有 不是那种买够多少才送的套路"
+  },
+  {
+   "i": 11,
+   "url": "https://x.com/lonelisland/status/2074885274526736508",
+   "day": "2026-07-08",
+   "author": "lonelisland",
+   "followers": 68,
+   "engage": 0,
+   "text": "大A美股都崩盘 无偿加班到半夜 真绝望咧我钱呢"
+  },
+  {
+   "i": 12,
+   "url": "https://x.com/SunnyMQ1/status/2074885761477009670",
+   "day": "2026-07-08",
+   "author": "SunnyMQ1",
+   "followers": 10393,
+   "engage": 2,
+   "text": "@BITstocks_CN 美股开户直通车，链接在这里👉\nhttps://t.co/gmlnh0dkGe"
+  }
+ ]
+}
