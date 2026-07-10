@@ -140,8 +140,11 @@ def do_aggregate():
     if not len(df):
         print("speech_judged.csv 为空,先 --export/--ingest")
         return
-    slist = json.loads((SENT / "sentinel" / "sentinel_list.json").read_text(encoding="utf-8"))
-    sentinels = {s["handle"].lower() for s in slist["sentinels"]}
+    slp = SENT / "sentinel" / "sentinel_list.json"
+    sentinels = set()
+    if slp.exists():  # 哨兵名单已按用户决定移除;存在时才启用"哨兵"分层
+        slist = json.loads(slp.read_text(encoding="utf-8"))
+        sentinels = {s["handle"].lower() for s in slist["sentinels"]}
 
     # 民调计数剔除营销喊单(拉客广告≠散户情绪;明细与样本仍保留可查)
     df["_ad"] = df["signals"].astype(str).str.contains("喊单")
