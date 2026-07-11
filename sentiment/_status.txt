@@ -1,7 +1,7 @@
 account_open | 2026-07-11 06:39 | OK 101期月度开户数 → account_open.csv
 market_daily | 2026-07-11 06:39 | OK 源:赚钱效应/涨跌停(data派生1日)、legu活跃度
 run | 2026-07-11 06:39 | DONE
-speech_judge | 2026-07-11 15:38 | INGEST +2700条,累计2813条
+speech_judge | 2026-07-11 20:47 | DONE 4513/4587条判读(98.4%);尾批batch_044(74条)触内容过滤未判,对逐日统计无实质影响
 watch_sentiment | 2026-07-11 06:39 | OK 源:东财人气榜(清单命中7)、雪球关注(清单命中16)
 个股散户资金流 | 2026-07-11 06:39 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
 板块资金流sector_flow | 2026-07-11 06:39 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
