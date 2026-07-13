@@ -8,6 +8,7 @@ name: tinghu-tweet-pipeline
 
 on:
   schedule:
+    - cron: "50 7 * * 1-5"  # 15:50 北京(A股收盘后),交易日盘后即取即时推文供当日结算
     - cron: "10 14 * * *"   # 22:10 北京时间,每天(推文不分交易日)
   workflow_dispatch:
     inputs:

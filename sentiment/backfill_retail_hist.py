@@ -10,8 +10,11 @@
 
 用法(国内机器):
   BACKFILL_START=20260601 BACKFILL_END=20260702 python sentiment/backfill_retail_hist.py
-产物:把 date,source=agg,metric∈{散户资金净流向,人气排名均值},value 追加进 market_daily.csv;
-     覆盖率与不可达写 sentiment/_status.txt。
+产物:
+  - 散户资金净流向/人气排名均值 → 追加进 market_daily.csv(source=agg)
+  - 板块资金流历史(全行业逐日主力净流入)→ sentiment/sector_flow_hist.csv
+    (date,sector,主力净流入亿元,主力净占比;判读板块跷跷板/吸血效应的直接仪器)
+  覆盖率与不可达写 sentiment/_status.txt。无历史窗口环境变量时默认近45天(日常追加用)。
 """
 import os
 import time
@@ -101,17 +104,69 @@ def backfill(start_iso, end_iso):
     if rows:
         append_long(MARKET_DAILY, rows)
 
-    # ---- 3) 板块资金流历史(可得则收,否则标注)----
-    sector_ok = False
-    try:
-        retry(lambda: ak.stock_sector_fund_flow_hist(symbol="半导体"), tries=4)
-        sector_ok = True
-    except Exception:
-        pass
-
     status("散户资金净流向", f"{'OK' if hit_ff else 'FAIL'} 覆盖{hit_ff}/{len(WATCH)}只关注股(海外墙轮动;需国内出口补全)")
     status("人气排名均值", f"{'OK' if hit_hr else 'FAIL'} 覆盖{hit_hr}/{len(WATCH)}只关注股")
-    status("板块资金流历史", "OK 可达(可扩展逐板块回填)" if sector_ok else "FAIL 海外不可达,待本地补")
+
+    # ---- 3) 板块资金流历史(逐板块回填 + 每日追加;判读板块跷跷板/吸血效应的直接仪器)----
+    do_sector_flow_hist(start_iso, end_iso)
+
+
+SECTOR_HIST = SENT / "sector_flow_hist.csv"
+
+
+def do_sector_flow_hist(start_iso, end_iso):
+    """全行业板块逐日主力净流入历史 → sentiment/sector_flow_hist.csv
+    (date,sector,主力净流入亿元,主力净占比);幂等合并。海外墙则整项标注待本地补,不伪造。
+    资金在板块间的此消彼长=跷跷板;某板块大额净流出伴另一板块净流入=吸血。"""
+    try:
+        names_df = retry(lambda: ak.stock_board_industry_name_em(), tries=4)
+    except Exception:
+        status("板块资金流历史", "FAIL 板块列表海外不可达,待本地补(整项)")
+        return
+    ncol = "板块名称" if "板块名称" in names_df.columns else names_df.columns[1]
+    sectors = [str(x).strip() for x in names_df[ncol] if str(x).strip()]
+
+    rows, hit = [], 0
+    for name in sectors:
+        try:
+            df = retry(lambda name=name: ak.stock_sector_fund_flow_hist(symbol=name), tries=3)
+        except Exception:
+            continue
+        dcol = "日期" if "日期" in df.columns else df.columns[0]
+        amt = next((c for c in df.columns if "主力" in c and "净额" in c), None)
+        pct = next((c for c in df.columns if "主力" in c and "净占比" in c), None)
+        if amt is None:
+            continue
+        hit += 1
+        for _, r in df.iterrows():
+            d = iso(r[dcol])
+            if start_iso <= d <= end_iso:
+                try:
+                    yi = round(float(r[amt]) / 1e8, 3)  # 元→亿元
+                except (TypeError, ValueError):
+                    continue
+                p = ""
+                try:
+                    p = round(float(r[pct]), 2)
+                except (TypeError, ValueError):
+                    p = ""
+                rows.append([d, name, yi, p])
+        time.sleep(0.4)
+
+    if not rows:
+        status("板块资金流历史", f"FAIL 板块列表{len(sectors)}个但历史全部海外墙,待本地补")
+        return
+    cols = ["date", "sector", "主力净流入亿元", "主力净占比"]
+    df_new = pd.DataFrame(rows, columns=cols)
+    if SECTOR_HIST.exists():
+        old = pd.read_csv(SECTOR_HIST, dtype={"date": str, "sector": str})
+        df_new = pd.concat([old, df_new], ignore_index=True)
+    df_new["date"] = df_new["date"].astype(str)
+    df_new = df_new.drop_duplicates(subset=["date", "sector"], keep="last")
+    df_new = df_new.sort_values(["date", "主力净流入亿元"], ascending=[True, False]).reset_index(drop=True)
+    df_new.to_csv(SECTOR_HIST, index=False, encoding="utf-8-sig")
+    span = f"{df_new['date'].min()}~{df_new['date'].max()}"
+    status("板块资金流历史", f"OK 覆盖{hit}/{len(sectors)}个板块 × {span} → sector_flow_hist.csv")
     print(f"散户资金净流向 覆盖{hit_ff}/{len(WATCH)}; 人气 覆盖{hit_hr}/{len(WATCH)}; 板块历史 {'OK' if sector_ok else 'FAIL'}")
 
 
