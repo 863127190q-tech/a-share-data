@@ -1,7 +1,6 @@
-account_open | 2026-07-13 04:11 | OK 101期月度开户数 → account_open.csv
-market_daily | 2026-07-13 04:09 | OK 源:legu活跃度
-run | 2026-07-13 04:11 | DONE
-watch_sentiment | 2026-07-13 04:11 | OK 源:雪球关注(清单命中16)
-东财人气榜hot_rank | 2026-07-13 04:09 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
-个股散户资金流 | 2026-07-13 04:11 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
-板块资金流sector_flow | 2026-07-13 04:09 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+account_open | 2026-07-14 04:38 | OK 101期月度开户数 → account_open.csv
+market_daily | 2026-07-14 04:37 | OK 源:赚钱效应/涨跌停(data派生1日)、legu活跃度
+run | 2026-07-14 04:38 | DONE
+watch_sentiment | 2026-07-14 04:37 | OK 源:东财人气榜(清单命中8)、雪球关注(清单命中16)
+个股散户资金流 | 2026-07-14 04:37 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+板块资金流sector_flow | 2026-07-14 04:37 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
