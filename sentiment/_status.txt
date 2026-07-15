@@ -4,4 +4,9 @@ run | 2026-07-13 04:11 | DONE
 watch_sentiment | 2026-07-13 04:11 | OK 源:雪球关注(清单命中16)
 东财人气榜hot_rank | 2026-07-13 04:09 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 个股散户资金流 | 2026-07-13 04:11 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+个股资金流分层 | 2026-07-15 16:29 | SKIP 待国内本地跑(海外东财push2his墙);跑 bash sentiment/fundflow/backfill_local.sh
+人气排名均值 | 2026-07-13 17:14 | OK 覆盖16/16只关注股
+散户主力背离 | 2026-07-15 16:29 | SKIP 待individual_flow.csv(需国内本地跑fetch_fundflow)
+散户资金净流向 | 2026-07-13 17:14 | FAIL 覆盖0/16只关注股(海外墙轮动;需国内出口补全)
 板块资金流sector_flow | 2026-07-13 04:09 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+板块资金流历史 | 2026-07-13 17:15 | FAIL 板块列表海外不可达,待本地补(整项)
