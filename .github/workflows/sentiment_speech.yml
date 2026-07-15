@@ -53,11 +53,6 @@ jobs:
         continue-on-error: true
         run: python sentiment/fetch_retail_sentiment.py
 
-      - name: Fundflow layered(C·个股资金流分层;海外必然墙→标注待本地补,不硬凑)
-        continue-on-error: true
-        run: |
-          python sentiment/fundflow/fetch_fundflow.py || true
-          python sentiment/fundflow/retail_vs_main.py || true
 
       - name: Commit & push
         continue-on-error: true
