@@ -1,6 +1,6 @@
-account_open | 2026-07-20 04:12 | OK 101期月度开户数 → account_open.csv
-market_daily | 2026-07-20 04:11 | OK 源:legu活跃度
-run | 2026-07-20 04:12 | DONE
-sector_flow | 2026-07-20 04:11 | OK 496个板块 → sector_flow_20260719.csv
-watch_sentiment | 2026-07-20 04:12 | OK 源:东财人气榜(清单命中10)、雪球关注(清单命中16)
-个股散户资金流 | 2026-07-20 04:12 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+account_open | 2026-07-21 04:52 | OK 101期月度开户数 → account_open.csv
+market_daily | 2026-07-21 04:51 | OK 源:赚钱效应/涨跌停(data派生1日)、legu活跃度
+run | 2026-07-21 04:52 | DONE
+watch_sentiment | 2026-07-21 04:52 | OK 源:东财人气榜(清单命中7)、雪球关注(清单命中16)
+个股散户资金流 | 2026-07-21 04:52 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+板块资金流sector_flow | 2026-07-21 04:51 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
