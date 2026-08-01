@@ -1,1 +1,6 @@
-run | 2026-08-01 04:44 | START 日期=2026-07-31
+account_open | 2026-08-02 04:15 | OK 101期月度开户数 → account_open.csv
+market_daily | 2026-08-02 04:15 | OK 源:legu活跃度
+run | 2026-08-02 04:15 | DONE
+watch_sentiment | 2026-08-02 04:15 | OK 源:东财人气榜(清单命中7)、雪球关注(清单命中16)
+个股散户资金流 | 2026-08-02 04:15 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+板块资金流sector_flow | 2026-08-02 04:15 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
