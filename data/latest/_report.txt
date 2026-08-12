@@ -5,4 +5,4 @@ OK   zt_pool.csv  92行
 OK   zb_pool.csv  13行
 OK   dt_pool.csv  0行
 OK   industry.csv  496行
-OK   concept.csv  503行
+OK   concept.csv  504行
