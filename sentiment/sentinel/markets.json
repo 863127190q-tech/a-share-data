@@ -1,0 +1,28 @@
+{
+  "_说明": "三市场哨兵自动发现配置。A股候选可从存量言论池免费挖(pool_mine=true);美股/加密需新搜索。eval_window=战绩回测窗口;bench=回测基准(A股用本地data/派生等权指数,美股用新浪日线,加密用Binance)。",
+  "eval_window": {"start": "2026-07-01", "end": "2026-09-15"},
+  "markets": {
+    "A股": {
+      "pool_mine": true,
+      "queries": ["(\"A股\" OR \"大A\" OR \"上证\" OR \"创业板\") lang:zh"],
+      "bench": {"kind": "local_universe", "symbol": "hist_universe等权"}
+    },
+    "美股": {
+      "pool_mine": false,
+      "queries": [
+        "(\"美股\" OR \"纳指\" OR \"标普\") lang:zh",
+        "($SPY OR $QQQ OR $NVDA) lang:en"
+      ],
+      "bench": {"kind": "us_daily", "symbol": "QQQ"}
+    },
+    "加密": {
+      "pool_mine": false,
+      "queries": [
+        "(\"比特币\" OR \"币圈\" OR \"山寨币\") lang:zh",
+        "($BTC OR bitcoin OR $ETH) lang:en"
+      ],
+      "bench": {"kind": "binance", "symbol": "BTCUSDT"}
+    }
+  },
+  "candidate_filter": {"min_followers": 5000, "min_days_seen": 5, "top_n_per_market": 10}
+}

@@ -1,0 +1,67 @@
+name: sentinel-discover
+
+# 哨兵自动发现(手动触发):候选池 → 时间线抓取。判读与战绩回测在会话/本地完成。
+# 全程 continue-on-error,只写 sentiment/ 下产物,不碰行情/推文主管道。
+
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: "discover=只做候选发现 / timelines=只抓时间线 / both"
+        required: false
+        default: "both"
+      only_market:
+        description: "可选:只做某个市场(A股/美股/加密),留空=全部"
+        required: false
+        default: ""
+      max_pages:
+        description: "每账号最多翻页数(每页约20条,默认8)"
+        required: false
+        default: "8"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sentiment-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install requests
+
+      - name: Discover candidates
+        if: ${{ github.event.inputs.step != 'timelines' }}
+        continue-on-error: true
+        env:
+          TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
+        run: python sentiment/sentinel/discover_candidates.py
+
+      - name: Fetch timelines
+        if: ${{ github.event.inputs.step != 'discover' }}
+        continue-on-error: true
+        env:
+          TWEET_API_KEY: ${{ secrets.TWEET_API_KEY }}
+          ONLY_MARKET: ${{ github.event.inputs.only_market }}
+          MAX_PAGES_PER_ACCOUNT: ${{ github.event.inputs.max_pages }}
+        run: python sentiment/sentinel/fetch_timelines.py
+
+      - name: Commit & push
+        continue-on-error: true
+        run: |
+          git config user.name "sentinel-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add sentiment/sentinel/
+          git commit -m "sentinel: discover/timelines $(date -u +%Y%m%d-%H%M)" || echo "no changes"
+          for i in 1 2 3; do
+            git push && break
+            git pull --rebase -X theirs origin main || { git rebase --abort 2>/dev/null || true; sleep 7; }
+          done
+          git push || echo "push失败,下次重试"
