@@ -146,7 +146,10 @@ def main():
             continue
         agg, fetched, err = search_authors(key, mc["queries"])
         total_cost_n += fetched
-        rows = [{"handle": a, **v} for a, v in agg.items()]
+        # days 在搜索分支里是 set,须转成天数(池挖分支已转);漏转会导致 set>=int 崩溃
+        rows = [{"handle": a, "n": v["n"], "days": len(v["days"]),
+                 "fol": v["fol"], "eng": v["eng"], "lang": v["lang"] or "zh"}
+                for a, v in agg.items()]
         n = write_candidates(market, rows, "search")
         msg = f"OK 搜索候选{n}个(采样{fetched}条,费用约${fetched*0.00015:.3f})"
         if err:

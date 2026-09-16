@@ -58,7 +58,7 @@ jobs:
         run: |
           git config user.name "sentinel-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add sentiment/sentinel/
+          git add sentiment/   # 必须含 _status.txt,否则它未暂存会让后续 rebase 拒绝、数据丢失
           git commit -m "sentinel: discover/timelines $(date -u +%Y%m%d-%H%M)" || echo "no changes"
           for i in 1 2 3; do
             git push && break
