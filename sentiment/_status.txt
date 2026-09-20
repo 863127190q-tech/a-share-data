@@ -1,7 +1,7 @@
-account_open | 2026-09-20 02:34 | OK 101期月度开户数 → account_open.csv
-market_daily | 2026-09-20 02:34 | OK 源:legu活跃度
-run | 2026-09-20 02:34 | DONE
-watch_sentiment | 2026-09-20 02:34 | OK 源:东财人气榜(清单命中2)
-个股散户资金流 | 2026-09-20 02:34 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
-板块资金流sector_flow | 2026-09-20 02:34 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
-雪球关注hot_follow_xq | 2026-09-20 02:34 | FAIL NetworkError: Failed to request Xueqiu hot rank endpoint: Expecting value: line 1 column 1 (ch
+account_open | 2026-09-21 02:43 | OK 101期月度开户数 → account_open.csv
+market_daily | 2026-09-21 02:43 | OK 源:legu活跃度
+run | 2026-09-21 02:43 | DONE
+watch_sentiment | 2026-09-21 02:43 | OK 源:东财人气榜(清单命中1)
+个股散户资金流 | 2026-09-21 02:43 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+板块资金流sector_flow | 2026-09-21 02:43 | FAIL JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+雪球关注hot_follow_xq | 2026-09-21 02:43 | FAIL NetworkError: Failed to request Xueqiu hot rank endpoint: Expecting value: line 1 column 1 (ch
