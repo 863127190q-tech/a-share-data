@@ -1,1 +1,8 @@
-run | 2026-11-06 05:56 | START 日期=2026-11-05
+account_open | 2026-11-07 05:28 | OK 101期月度开户数 → account_open.csv
+market_daily | 2026-11-07 05:27 | OK 源:赚钱效应/涨跌停(data派生1日)、legu活跃度
+run | 2026-11-07 05:28 | DONE
+sector_flow | 2026-11-07 05:28 | OK 496个板块 → sector_flow_20261106.csv
+watch_sentiment | 2026-11-07 05:28 | OK 源:东财人气榜(清单命中5)
+两融margin_sse | 2026-11-07 05:27 | FAIL 海外不可达(地域风控?),待本地补:ConnectionError
+个股散户资金流 | 2026-11-07 05:28 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+雪球关注hot_follow_xq | 2026-11-07 05:28 | FAIL NetworkError: Failed to request Xueqiu hot rank endpoint: Expecting value: line 1 column 1 (ch
