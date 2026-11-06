@@ -1,0 +1,8 @@
+20261106
+OK   all_stocks.csv  5927行
+OK   etf.csv  1666行
+OK   zt_pool.csv  32行
+OK   zb_pool.csv  14行
+OK   dt_pool.csv  15行
+OK   industry.csv  496行
+OK   concept.csv  531行
