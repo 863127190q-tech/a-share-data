@@ -1,6 +1,6 @@
-account_open | 2026-11-22 05:38 | OK 101期月度开户数 → account_open.csv
-market_daily | 2026-11-22 05:36 | OK 源:legu活跃度
-run | 2026-11-22 05:38 | DONE
-watch_sentiment | 2026-11-22 05:38 | OK 源:东财人气榜(清单命中6)、雪球关注(清单命中16)
-个股散户资金流 | 2026-11-22 05:38 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
-板块资金流sector_flow | 2026-11-22 05:36 | FAIL AttributeError: stock_sector_fund_flow_rank 已在 1.20.45 更名为 stock_fund_flow_sector_rank_em，请改用 ak
+account_open | 2026-11-23 05:43 | OK 101期月度开户数 → account_open.csv
+market_daily | 2026-11-23 05:42 | OK 源:legu活跃度
+run | 2026-11-23 05:43 | DONE
+watch_sentiment | 2026-11-23 05:43 | OK 源:东财人气榜(清单命中4)、雪球关注(清单命中16)
+个股散户资金流 | 2026-11-23 05:43 | SKIP individual_fund_flow 走push2his海外被墙,待本地补
+板块资金流sector_flow | 2026-11-23 05:42 | FAIL AttributeError: stock_sector_fund_flow_rank 已在 1.20.45 更名为 stock_fund_flow_sector_rank_em，请改用 ak
